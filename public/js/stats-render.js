@@ -263,6 +263,9 @@ const GAMES_CONFIG_DETAILED = {
             { Mode: 'Blitz 1v1', apiPrefix: 'blitz_duel_' },
             { Mode: 'Sumo Tournament', apiPrefix: 'sumo_tournament_' },
             { Mode: 'Bridge 1v1', apiPrefix: 'bridge_duel_' },
+            { Mode: 'Bridge 2v2', apiPrefix: 'bridge_doubles_' },
+            { Mode: 'Bridge 3v3', apiPrefix: 'bridge_threes_' },
+            { Mode: 'Bridge 4v4', apiPrefix: 'bridge_four_' },
             { Mode: 'Classic 1v1', apiPrefix: 'classic_duel_' },
             { Mode: 'OP 1v1', apiPrefix: 'op_duel_' },
             { Mode: 'OP 2v2', apiPrefix: 'op_doubles_' },
@@ -924,6 +927,80 @@ function generateDetailedTableAccordion(gameKey, config, stats, container, fullD
     
     panel.appendChild(overallContainer);
 
+    const extractSkyWarsRankedSeasons = () => {
+        if (gameKey !== 'SkyWars') return [];
+
+        const candidates = [
+            fullData?.skywarsRankedSeasons,
+            fullData?.rankedSeasons,
+            fullData?.ranked_seasons,
+            fullData?.stats?.SkyWars?.rankedSeasons,
+            fullData?.stats?.SkyWars?.ranked_seasons,
+            fullData?.stats?.SkyWars?.rankedSeasonHistory,
+            fullData?.stats?.SkyWars?.ranked_season_history
+        ];
+
+        for (const candidate of candidates) {
+            if (!Array.isArray(candidate) || candidate.length === 0) continue;
+
+            return candidate.map(entry => {
+                if (!entry || typeof entry !== 'object') return null;
+
+                const season = entry.season ?? entry.seasonNumber ?? entry.season_id ?? entry.seasonId ?? entry.id ?? '';
+                const date = entry.date ?? entry.month ?? entry.monthYear ?? entry.label ?? entry.period ?? '—';
+                const rating = Number(entry.rating ?? entry.points ?? entry.score ?? entry.value ?? 0);
+                const position = Number(entry.position ?? entry.place ?? entry.rank ?? entry.placement ?? 0);
+
+                if (season === '' && !date && !Number.isFinite(rating) && !Number.isFinite(position)) return null;
+
+                return {
+                    season,
+                    date,
+                    rating: Number.isFinite(rating) ? rating : 0,
+                    position: Number.isFinite(position) ? position : 0
+                };
+            }).filter(Boolean);
+        }
+
+        return [];
+    };
+
+    const rankedSeasons = extractSkyWarsRankedSeasons();
+    if (gameKey === 'SkyWars') {
+        const rankedSection = document.createElement('div');
+        rankedSection.className = 'overall-stats-section';
+        rankedSection.innerHTML = `
+            <div class="section-title">Ranked Seasons</div>
+            ${rankedSeasons.length > 0 ? `
+                <div class="stats-table-wrapper">
+                    <table class="stats-table skywars-ranked-seasons-table" style="min-width: 0; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Season</th>
+                                <th>Date</th>
+                                <th>Rating</th>
+                                <th>Position</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rankedSeasons.map(entry => `
+                                <tr>
+                                    <td>${entry.season || '—'}</td>
+                                    <td>${entry.date || '—'}</td>
+                                    <td>${Number(entry.rating || 0).toLocaleString('en-US')}</td>
+                                    <td>${Number(entry.position || 0).toLocaleString('en-US')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : `
+                <div class="overall-stats-row"><span>No ranked season data available yet.</span></div>
+            `}
+        `;
+        panel.appendChild(rankedSection);
+    }
+
     const renderModeTable = (tableConfig, panelContainer, titleText = '') => {
         if (!tableConfig?.modes || tableConfig.modes.length === 0) return;
 
@@ -1080,12 +1157,30 @@ function generateDetailedTableAccordion(gameKey, config, stats, container, fullD
                         altPrefixes = ['sw_tournament_', 'skywars_tournament_'];
                     } else if (duelMode === 'sumo tournament') {
                         altPrefixes = ['sumo_tournament_', 'sumo_tourney_'];
+                    } else if (duelMode === 'bridge 1v1') {
+                        altPrefixes = ['bridge_duel_', 'bridge_1v1_'];
+                    } else if (duelMode === 'bridge 2v2') {
+                        altPrefixes = ['bridge_doubles_', 'bridge_2v2_', 'bridge_double_'];
+                    } else if (duelMode === 'bridge 3v3') {
+                        altPrefixes = ['bridge_threes_', 'bridge_3v3_', 'bridge_three_'];
+                    } else if (duelMode === 'bridge 4v4') {
+                        altPrefixes = ['bridge_four_', 'bridge_4v4_'];
                     }
 
                     if (altPrefixes.length > 0) {
                         const duelCandidates = [];
-                        for (const ap of altPrefixes) {
-                            duelCandidates.push(`${ap}${f}${s}`, `${ap}${f}`);
+                        const allPrefixes = Array.from(new Set([p, ...altPrefixes].filter(Boolean)));
+
+                        for (const ap of allPrefixes) {
+                            const cleanAp = ap.replace(/_+$/g, '');
+                            duelCandidates.push(
+                                `${ap}${f}${s}`,
+                                `${ap}${f}`,
+                                `${f}_${cleanAp}`,
+                                `${cleanAp}_${f}`,
+                                `${f}${cleanAp}`,
+                                `${cleanAp}${f}`
+                            );
                         }
 
                         for (const candidate of duelCandidates) {
@@ -1093,6 +1188,39 @@ function generateDetailedTableAccordion(gameKey, config, stats, container, fullD
                             for (const [key, val] of Object.entries(stats)) {
                                 if (key.toLowerCase() === lookup) return val;
                             }
+                        }
+
+                        const trackedFields = {
+                            kills: ['kills', 'kill'],
+                            deaths: ['deaths', 'death'],
+                            wins: ['wins', 'win'],
+                            losses: ['losses', 'loss']
+                        };
+
+                        if (trackedFields[f]) {
+                            const normalize = (text) => String(text).toLowerCase().replace(/[^a-z0-9]/g, '');
+                            const modeAliases = allPrefixes
+                                .map(ap => ap.replace(/_+$/g, ''))
+                                .filter(Boolean)
+                                .map(normalize);
+                            const fieldAliases = trackedFields[f].map(normalize);
+
+                            let best = null;
+                            for (const [key, val] of Object.entries(stats)) {
+                                const normalizedKey = normalize(key);
+                                const hasMode = modeAliases.some(alias => alias && normalizedKey.includes(alias));
+                                if (!hasMode) continue;
+
+                                const hasField = fieldAliases.some(alias => alias && normalizedKey.includes(alias));
+                                if (!hasField) continue;
+
+                                const parsed = Number(val);
+                                if (!Number.isFinite(parsed) || parsed < 0) continue;
+
+                                best = best === null ? parsed : Math.max(best, parsed);
+                            }
+
+                            if (best !== null) return best;
                         }
                     }
                 }
