@@ -284,6 +284,7 @@ async function comparePlayers() {
                 'Arena',
                 'Battleground',
                 'Bedwars',
+                'BuildBattle',
                 'Duels',
                 'GingerBread',
                 'HungerGames',
@@ -522,6 +523,12 @@ async function comparePlayers() {
                         { label: 'Losses', field: 'losses', preferHigher: false, type: 'number' },
                         { label: 'K/D', field: 'kd', preferHigher: true, type: 'ratio' },
                         { label: 'W/L', field: 'wl', preferHigher: true, type: 'ratio' }
+                    ];
+                }
+
+                if (gameKey === 'BuildBattle') {
+                    return [
+                        { label: 'Wins', field: 'wins', preferHigher: true, type: 'number' }
                     ];
                 }
 
@@ -863,7 +870,7 @@ async function comparePlayers() {
                     `;
                 }).filter(Boolean).join('') : '';
 
-                const showModes = hasModes && ['Arena', 'Bedwars', 'MurderMystery', 'Quake', 'SkyClash', 'SkyWars', 'SpeedUHC'].includes(gameKey) && rows.length > 0;
+                const showModes = hasModes && ['Arena', 'Bedwars', 'BuildBattle', 'MurderMystery', 'Quake', 'SkyClash', 'SkyWars', 'SpeedUHC'].includes(gameKey) && rows.length > 0;
 
                 if (!overallRows && !showModes) continue;
 
