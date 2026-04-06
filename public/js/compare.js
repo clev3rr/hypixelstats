@@ -87,6 +87,51 @@ async function comparePlayers() {
             const cleanPrefix = prefix.endsWith('_') ? prefix.slice(0, -1) : prefix;
             const cleanSuffix = suffix.startsWith('_') ? suffix.slice(1) : suffix;
 
+            if (gameKey === 'SuperSmash') {
+                const smashClassKeyMap = {
+                    'bulk': 'THE_BULK',
+                    'tinman': 'TINMAN',
+                    'cake monster': 'CAKE_MONSTER',
+                    'marauder': 'MARAUDER',
+                    'void crawler': 'DUSK_CRAWLER',
+                    'general cluck': 'GENERAL_CLUCK',
+                    'skull fire': 'SKULLFIRE',
+                    'sanic': 'SANIC',
+                    'shoop': 'SHOOP_DA_WHOOP',
+                    'spooderman': 'SPODERMAN',
+                    'cryomancer': 'FROSTY',
+                    'karakot': 'GOKU',
+                    'botmon': 'BOTMUN',
+                    'pug': 'PUG',
+                    'sergeant shield': 'SGT_SHIELD',
+                    'green hood': 'GREEN_HOOD'
+                };
+                const smashClassKey = smashClassKeyMap[String(mode.Mode || '').toLowerCase()];
+                const classStats = smashClassKey && gameStats && typeof gameStats === 'object' && gameStats.class_stats && typeof gameStats.class_stats === 'object'
+                    ? gameStats.class_stats[smashClassKey]
+                    : null;
+                const parse = (value) => {
+                    const parsed = Number(value);
+                    return Number.isFinite(parsed) ? parsed : null;
+                };
+
+                if (classStats && typeof classStats === 'object') {
+                    if (['kills', 'deaths', 'wins', 'losses'].includes(field)) {
+                        const exact = parse(classStats[field]);
+                        if (exact !== null) return exact;
+
+                        if (field === 'losses') {
+                            const wins = parse(classStats.wins) || 0;
+                            const games = parse(classStats.games);
+                            if (games !== null) return Math.max(0, Math.floor(games - wins));
+                        }
+
+                        return 0;
+                    }
+                }
+
+            }
+
             const aliases = field === 'deaths'
                 ? ['deaths', 'death']
                 : field === 'losses'

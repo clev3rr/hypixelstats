@@ -183,7 +183,7 @@ const GAMES_CONFIG_DETAILED = {
             { label: 'W/L', calc: s => {
                 const wins = Number(s.wins) || 0;
                 const losses = Number(s.losses) || 0;
-                return losses > 0 ? parseFloat((wins / losses).toFixed(3)) : wins;
+                return losses > 0 ? parseFloat((wins / losses).toFixed(3)) : (wins > 0 ? '∞' : 0);
             }},
             {
                 label: 'Smash Level',
@@ -1564,6 +1564,78 @@ function generateDetailedTableAccordion(gameKey, config, stats, container, fullD
                     const modeName = String(mode.Mode || '').toLowerCase();
                     const normalize = (text) => String(text).toLowerCase().replace(/[^a-z0-9]/g, '');
 
+                    const smashClassKeyMap = {
+                        'bulk': 'THE_BULK',
+                        'tinman': 'TINMAN',
+                        'cake monster': 'CAKE_MONSTER',
+                        'marauder': 'MARAUDER',
+                        'void crawler': 'DUSK_CRAWLER',
+                        'general cluck': 'GENERAL_CLUCK',
+                        'skull fire': 'SKULLFIRE',
+                        'sanic': 'SANIC',
+                        'shoop': 'SHOOP_DA_WHOOP',
+                        'spooderman': 'SPODERMAN',
+                        'cryomancer': 'FROSTY',
+                        'karakot': 'GOKU',
+                        'botmon': 'BOTMUN',
+                        'pug': 'PUG',
+                        'sergeant shield': 'SGT_SHIELD',
+                        'green hood': 'GREEN_HOOD'
+                    };
+                    const smashClassKey = smashClassKeyMap[modeName];
+                    const classStats = smashClassKey && stats && typeof stats === 'object' && stats.class_stats && typeof stats.class_stats === 'object'
+                        ? stats.class_stats[smashClassKey]
+                        : null;
+
+                    const getNumeric = (value) => {
+                        const parsed = Number(value);
+                        return Number.isFinite(parsed) ? parsed : null;
+                    };
+
+                    if (classStats && typeof classStats === 'object') {
+                        if (cleanField === 'pres') {
+                            const pgValue = getNumeric(stats[`pg_${smashClassKey}`]);
+                            if (pgValue !== null) return Math.floor(pgValue);
+
+                            const nestedValue = getNumeric(classStats.pres) ?? getNumeric(classStats.prestige) ?? getNumeric(classStats.prestiges);
+                            if (nestedValue !== null) return Math.floor(nestedValue);
+
+                            const encodedLevel = getNumeric(classStats.level) ?? getNumeric(classStats.smash_level) ?? getNumeric(classStats.smashlevel) ?? getNumeric(classStats.hero_level);
+                            if (encodedLevel !== null && encodedLevel >= 100) {
+                                return Math.floor(encodedLevel / 100);
+                            }
+
+                            return 0;
+                        }
+
+                        if (cleanField === 'level') {
+                            const topLevel = getNumeric(stats[`lastLevel_${smashClassKey}`]);
+                            if (topLevel !== null) return Math.floor(topLevel);
+
+                            const nestedLevel = getNumeric(classStats.level) ?? getNumeric(classStats.smash_level) ?? getNumeric(classStats.smashlevel) ?? getNumeric(classStats.hero_level) ?? getNumeric(classStats.lvl);
+                            if (nestedLevel !== null) {
+                                return nestedLevel >= 100 ? Math.floor(nestedLevel % 100) : Math.floor(nestedLevel);
+                            }
+
+                            return 0;
+                        }
+
+                        if (['kills', 'deaths', 'wins', 'losses'].includes(cleanField)) {
+                            const value = getNumeric(classStats[cleanField]);
+                            if (value !== null) return Math.floor(value);
+
+                            if (cleanField === 'losses') {
+                                const wins = getNumeric(classStats.wins) ?? 0;
+                                const games = getNumeric(classStats.games) ?? 0;
+                                if (games >= wins) {
+                                    return Math.max(0, Math.floor(games - wins));
+                                }
+                            }
+
+                            return 0;
+                        }
+                    }
+
                     const flattenedStats = [];
                     const visited = new Set();
                     const flatten = (node, path = []) => {
@@ -2057,7 +2129,7 @@ function generateDetailedTableAccordion(gameKey, config, stats, container, fullD
                 else if (fieldName === 'WL') {
                     const w = Number(getModeStat('wins')) || 0;
                     const l = Number(getModeStat('losses')) || 0;
-                    value = l > 0 ? parseFloat((w / l).toFixed(3)) : w;
+                    value = l > 0 ? parseFloat((w / l).toFixed(3)) : (w > 0 ? '∞' : 0);
                 }
                 else if (fieldName === 'best_winstreak') {
                     const clean = prefix.endsWith('_') ? prefix.slice(0, -1) : prefix;
@@ -2192,7 +2264,7 @@ function generateDetailedTableAccordion(gameKey, config, stats, container, fullD
                     value = getModeStat(fieldName);
                 }
                 
-                row += `<td>${typeof value === 'number' ? value.toLocaleString() : value}</td>`;
+                row += `<td>${typeof value === 'number' ? value.toLocaleString('en-US') : value}</td>`;
             }
 
             if (gameKey === 'SkyClash' && !skipModeRow) {
