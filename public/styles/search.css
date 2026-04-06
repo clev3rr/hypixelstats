@@ -238,6 +238,17 @@
     text-align: center;
 }
 
+.capture-the-wool-table th,
+.capture-the-wool-table td {
+    padding: 10px 8px;
+    text-transform: none;
+}
+
+.capture-the-wool-table th:first-child,
+.capture-the-wool-table td:first-child {
+    text-align: left;
+}
+
 .comparator-mode-table th.cmp-pair-end,
 .comparator-mode-table td.cmp-pair-end {
     border-right: 2px solid #dbe3ef;

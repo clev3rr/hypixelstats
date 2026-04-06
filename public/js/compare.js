@@ -303,6 +303,9 @@ async function comparePlayers() {
                 'Walls3'
             ];
             const getComparatorConfig = (gameKey) => {
+                if (gameKey === 'Arcade') {
+                    return GAMES_CONFIG_DETAILED.Arcade || null;
+                }
                 return GAMES_CONFIG_DETAILED[gameKey]
                     || (typeof GAMES_CONFIG_SIMPLE === 'object' ? GAMES_CONFIG_SIMPLE[gameKey] : null)
                     || null;
@@ -316,7 +319,46 @@ async function comparePlayers() {
                     return leftName.localeCompare(rightName, 'en', { sensitivity: 'base' });
                 });
 
+            const normalizeComparatorSections = (fields) => {
+                if (!Array.isArray(fields)) return fields;
+                return fields.map(field => {
+                    if (field && typeof field.label === 'string') {
+                        const sectionMatch = field.label.match(/^---\s*(.+?)\s*---$/);
+                        if (sectionMatch) {
+                            return { section: sectionMatch[1] };
+                        }
+                    }
+                    return field;
+                });
+            };
+
             const getComparatorOverallFields = (gameKey, config) => {
+                if (gameKey === 'Arcade') {
+                    const raw = normalizeComparatorSections(GAMES_CONFIG_DETAILED.Arcade.overall || []);
+                    const filtered = [];
+                    let inCaptureSection = false;
+
+                    for (const field of raw) {
+                        if (field && field.section && field.section.toLowerCase().includes('capture the wool')) {
+                            filtered.push({ section: field.section, captureTheWool: true });
+                            inCaptureSection = true;
+                            continue;
+                        }
+
+                        if (inCaptureSection) {
+                            if (field && field.section) {
+                                inCaptureSection = false;
+                                filtered.push(field);
+                            }
+                            continue;
+                        }
+
+                        filtered.push(field);
+                    }
+
+                    return filtered;
+                }
+
                 if (gameKey === 'MurderMystery') {
                     const mmModeValue = (stats, suffix, key) => {
                         if (!suffix) return Number(stats?.[key] || 0);
@@ -372,6 +414,10 @@ async function comparePlayers() {
                     ];
                 }
 
+                if (gameKey === 'Arcade') {
+                    return GAMES_CONFIG_DETAILED.Arcade.overall || [];
+                }
+
                 if (gameKey === 'UHC') {
                     return [
                         { label: 'Coins', key: 'coins' },
@@ -416,7 +462,15 @@ async function comparePlayers() {
                 // Для простых конфигов (из GAMES_CONFIG_SIMPLE) преобразуем fields в overall формат
                 if (config.fields && !config.overall) {
                     if (Array.isArray(config.fields)) {
-                        return config.fields;
+                        return config.fields.map(field => {
+                            if (field && typeof field.label === 'string') {
+                                const sectionMatch = field.label.match(/^---\s*(.+?)\s*---$/);
+                                if (sectionMatch) {
+                                    return { section: sectionMatch[1] };
+                                }
+                            }
+                            return field;
+                        });
                     }
                     if (typeof config.fields === 'object') {
                         return Object.entries(config.fields).map(([label, fieldConfig]) => ({
@@ -435,6 +489,10 @@ async function comparePlayers() {
                                 }
                         }));
                     }
+                }
+
+                if (Array.isArray(config.overall)) {
+                    return normalizeComparatorSections(config.overall);
                 }
 
                 return config.overall || [];
@@ -542,6 +600,7 @@ async function comparePlayers() {
                 const firstGameStats = firstStats[gameKey] || {};
                 const secondGameStats = secondStats[gameKey] || {};
                 const metrics = getComparatorMetricConfig(gameKey);
+                let pendingCaptureModeTableRow = '';
 
                 const overallRows = getComparatorOverallFields(gameKey, config)
                 .filter(field => {
@@ -552,6 +611,148 @@ async function comparePlayers() {
                 })
                 .map(field => {
                     if (field && typeof field === 'object' && field.section) {
+                        if (field.captureTheWool) {
+                            const captureSummary = [
+                                {
+                                    label: 'Wins',
+                                    left: getNumberFromStatKeys(firstGameStats, ['wins_capture_the_wool', 'woolhunt_wins', 'wins_woolhunt', 'woolhunt_participated_wins']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['wins_capture_the_wool', 'woolhunt_wins', 'wins_woolhunt', 'woolhunt_participated_wins']) || 0,
+                                    preferHigher: true
+                                },
+                                {
+                                    label: 'Losses',
+                                    left: getNumberFromStatKeys(firstGameStats, ['losses_capture_the_wool', 'woolhunt_losses', 'woolhunt_participated_losses']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['losses_capture_the_wool', 'woolhunt_losses', 'woolhunt_participated_losses']) || 0,
+                                    preferHigher: false
+                                },
+                                {
+                                    label: 'Draws',
+                                    left: getNumberFromStatKeys(firstGameStats, ['draws_capture_the_wool', 'woolhunt_draws', 'ties_capture_the_wool', 'woolhunt_ties']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['draws_capture_the_wool', 'woolhunt_draws', 'ties_capture_the_wool', 'woolhunt_ties']) || 0,
+                                    preferHigher: false
+                                },
+                                {
+                                    label: 'Wools Captured',
+                                    left: getNumberFromStatKeys(firstGameStats, ['wools_captured', 'woolhunt_wools_captured', 'woolhunt_wool_captured']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['wools_captured', 'woolhunt_wools_captured', 'woolhunt_wool_captured']) || 0,
+                                    preferHigher: true
+                                },
+                                {
+                                    label: 'Wools Stolen',
+                                    left: getNumberFromStatKeys(firstGameStats, ['wools_stolen', 'woolhunt_wools_stolen', 'woolhunt_wool_stolen']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['wools_stolen', 'woolhunt_wools_stolen', 'woolhunt_wool_stolen']) || 0,
+                                    preferHigher: true
+                                }
+                            ];
+
+                            const captureRows = [
+                                {
+                                    mode: 'Total',
+                                    left: getNumberFromStatKeys(firstGameStats, ['kills_capture_the_wool', 'woolhunt_kills']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['kills_capture_the_wool', 'woolhunt_kills']) || 0,
+                                    preferHigher: true,
+                                    valueLabel: 'Kills'
+                                },
+                                {
+                                    mode: 'Total',
+                                    left: getNumberFromStatKeys(firstGameStats, ['deaths_capture_the_wool', 'woolhunt_deaths']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['deaths_capture_the_wool', 'woolhunt_deaths']) || 0,
+                                    preferHigher: false,
+                                    valueLabel: 'Deaths'
+                                },
+                                {
+                                    mode: 'To/On Wool Holder',
+                                    left: getNumberFromStatKeys(firstGameStats, ['kills_to_on_wool_holder', 'woolhunt_kills_on_woolholder']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['kills_to_on_wool_holder', 'woolhunt_kills_on_woolholder']) || 0,
+                                    preferHigher: true,
+                                    valueLabel: 'Kills'
+                                },
+                                {
+                                    mode: 'To/On Wool Holder',
+                                    left: getNumberFromStatKeys(firstGameStats, ['deaths_to_on_wool_holder', 'woolhunt_deaths_to_woolholder']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['deaths_to_on_wool_holder', 'woolhunt_deaths_to_woolholder']) || 0,
+                                    preferHigher: false,
+                                    valueLabel: 'Deaths'
+                                },
+                                {
+                                    mode: 'With Wool',
+                                    left: getNumberFromStatKeys(firstGameStats, ['kills_with_wool', 'woolhunt_kills_with_wool']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['kills_with_wool', 'woolhunt_kills_with_wool']) || 0,
+                                    preferHigher: true,
+                                    valueLabel: 'Kills'
+                                },
+                                {
+                                    mode: 'With Wool',
+                                    left: getNumberFromStatKeys(firstGameStats, ['deaths_with_wool', 'woolhunt_deaths_with_wool']) || 0,
+                                    right: getNumberFromStatKeys(secondGameStats, ['deaths_with_wool', 'woolhunt_deaths_with_wool']) || 0,
+                                    preferHigher: false,
+                                    valueLabel: 'Deaths'
+                                }
+                            ];
+
+                            const summaryRows = captureSummary.map(row => {
+                                const leftClass = getClassForPair(row.left, row.right, row.preferHigher, 'left');
+                                const rightClass = getClassForPair(row.left, row.right, row.preferHigher, 'right');
+                                return `
+                                    <tr>
+                                        <td>${row.label}</td>
+                                        <td class="${leftClass}">${row.left.toLocaleString('en-US')}</td>
+                                        <td class="${rightClass}">${row.right.toLocaleString('en-US')}</td>
+                                    </tr>
+                                `;
+                            }).join('');
+
+                            const modeTableRows = captureRows.map(row => {
+                                const leftClass = getClassForPair(row.left, row.right, row.preferHigher, 'left');
+                                const rightClass = getClassForPair(row.left, row.right, row.preferHigher, 'right');
+                                return `
+                                    <tr>
+                                        <td>${row.mode} ${row.valueLabel}</td>
+                                        <td class="${leftClass}">${row.left.toLocaleString('en-US')}</td>
+                                        <td class="${rightClass}">${row.right.toLocaleString('en-US')}</td>
+                                    </tr>
+                                `;
+                            }).join('');
+
+                            pendingCaptureModeTableRow = `
+                                <tr>
+                                    <td colspan="3">
+                                        <div class="stats-table-wrapper">
+                                            <table class="comparator-mode-table capture-the-wool-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mode</th>
+                                                        <th style="text-transform:none;">${firstData.name}</th>
+                                                        <th style="text-transform:none;">${secondData.name}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${modeTableRows}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+
+                            return `
+                        <tr class="comparator-overall-section-row">
+                            <td colspan="3" class="comparator-overall-section-title">Capture The Wool</td>
+                        </tr>
+                        ${summaryRows}
+                    `;
+                        }
+
+                        if (pendingCaptureModeTableRow) {
+                            const tableRow = pendingCaptureModeTableRow;
+                            pendingCaptureModeTableRow = '';
+                            return `${tableRow}
+                        <tr class="comparator-overall-section-row">
+                            <td colspan="3" class="comparator-overall-section-title">${String(field.section)}</td>
+                        </tr>
+                    `;
+                        }
+
                         return `
                         <tr class="comparator-overall-section-row">
                             <td colspan="3" class="comparator-overall-section-title">${String(field.section)}</td>
@@ -583,7 +784,7 @@ async function comparePlayers() {
                             <td class="${rightClass}">${formatOverallValue(rightRaw)}</td>
                         </tr>
                     `;
-                }).join('');
+                }).join('') + pendingCaptureModeTableRow;
 
                 const modesToRender = gameKey === 'MurderMystery'
                     ? config.modes.filter(mode => ['All', 'Classic', 'Assassins', 'Hardcore'].includes(String(mode.Mode || '')))
@@ -674,6 +875,7 @@ async function comparePlayers() {
                 gameCards.push(`
                     <div class="comparator-mode-card">
                         <div class="comparator-mode-title">${config.name}</div>
+                        ${overallRows ? `
                         <div class="comparator-section-label">Overall</div>
                         <div class="stats-table-wrapper">
                             <table class="comparator-mode-table comparator-overall-table">
@@ -687,6 +889,7 @@ async function comparePlayers() {
                                 <tbody>${overallRows}</tbody>
                             </table>
                         </div>
+                        ` : ''}
 
                         ${showModes ? `
                         <div class="comparator-section-label">Modes</div>

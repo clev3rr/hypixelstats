@@ -378,6 +378,15 @@ const GAMES_CONFIG_DETAILED = {
 
             // Capture the Wool
             { label: '--- Capture the Wool ---', calc: () => '' },
+            { label: 'Wins', key: 'woolhunt_participated_wins' },
+            { label: 'Losses', key: 'woolhunt_participated_losses' },
+            { label: 'Draws', calc: s => getNumberFromStatKeys(s, ['woolhunt_participated_draws','woolhunt_draws','draws_woolhunt']) || 0 },
+            { label: 'Wools Captured', key: 'woolhunt_wools_captured' },
+            { label: 'Wools Stolen', key: 'woolhunt_wools_stolen' },
+            { label: 'Total Kills', key: 'woolhunt_kills' },
+            { label: 'Total Deaths', key: 'woolhunt_deaths' },
+            { label: 'Kills to/On Wool Holder', key: 'woolhunt_kills_on_woolholder' },
+            { label: 'Kills with Wool', key: 'woolhunt_kills_with_wool' },
 
             // Hole in the Wall / Hypixel Says / Dragonwars
             { label: '--- Hole in the Wall ---', calc: () => '' },
