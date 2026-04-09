@@ -15,7 +15,7 @@ async function getStats() {
     accordion.innerHTML = '';
 
     try {
-        const data = await fetchApiJson(`/api/stats/${encodeURIComponent(username)}`, 'Ошибка сервера');
+        const data = await fetchApiJson(`/api/stats/${encodeURIComponent(username)}`, 'Server error');
 
         const playerNameEl = document.getElementById('playerName');
         const playerAvatarEl = document.getElementById('playerAvatar');

@@ -42,7 +42,7 @@ async function fetchApiJson(path, fallbackError) {
     if (!contentType.includes('application/json')) {
         const text = await response.text();
         if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-            throw new Error('API недоступен. Открой сайт через http://localhost:3000 или оставь backend на 3000.');
+            throw new Error('API unavailable. Open the site through http://localhost:3000 or keep the backend on port 3000.');
         }
         throw new Error(fallbackError || 'Unexpected server response');
     }

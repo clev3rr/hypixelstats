@@ -7,11 +7,11 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// API КЛЮЧ HYPIXEL
+// Hypixel API key
 const HYPIXEL_API_KEY = process.env.HYPIXEL_API_KEY;
 
 if (!HYPIXEL_API_KEY) {
-    console.error('Ошибка: не найден HYPIXEL_API_KEY в переменных окружения.');
+    console.error('Error: HYPIXEL_API_KEY is not set in environment variables.');
     process.exit(1);
 }
 
@@ -291,7 +291,7 @@ function getRankInfo(player) {
     const directRank = String(player.rank || player.rankType || '').toUpperCase();
     const staffIcon = {
         class: '',
-        html: `<span style="color:#FF5555;">[</span><span style="color:#FFAA00;">ዞ</span><span style="color:#FF5555;">]</span>`,
+        html: `<span style="color:#FF5555;">[</span><span style="color:#FFAA00;">ZO</span><span style="color:#FF5555;">]</span>`,
         color: '#FF5555'
     };
     switch (directRank) {
@@ -423,15 +423,15 @@ app.get('/api/stats/:username', async (req, res) => {
     }
 
     try {
-        // 1. Получаем UUID через Mojang
+        // 1. Get UUID from Mojang
         const mojangResponse = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`);
         if (!mojangResponse.data || !mojangResponse.data.id) {
-            return res.status(404).json({ error: 'Игрок не найден в Mojang.' });
+            return res.status(404).json({ error: 'Player not found in Mojang.' });
         }
 
         const uuid = mojangResponse.data.id;
 
-        // 2. Параллельный запрос к Hypixel (Игрок + Гильдия)
+        // 2. Parallel Hypixel requests (player + guild)
         const [hypixelPlayerResponse, hypixelGuildResponse] = await Promise.all([
             axios.get(`https://api.hypixel.net/v2/player?uuid=${uuid}`, {
                 headers: { 'API-Key': HYPIXEL_API_KEY }
@@ -442,7 +442,7 @@ app.get('/api/stats/:username', async (req, res) => {
         ]);
 
         if (!hypixelPlayerResponse.data.player) {
-            return res.status(404).json({ error: 'Игрок никогда не заходил на Hypixel.' });
+            return res.status(404).json({ error: 'Player has never joined Hypixel.' });
         }
 
         const player = hypixelPlayerResponse.data.player;
@@ -985,8 +985,14 @@ app.get('/api/stats/:username', async (req, res) => {
         res.json(responsePayload);
 
     } catch (error) {
-        console.error("Ошибка сервера:", error.message);
-        res.status(500).json({ error: 'Произошла ошибка при получении данных.' });
+        console.error("Server error:", error?.message, error?.response?.status);
+        if (error.response) {
+            const status = Number(error.response.status);
+            if ([400, 404].includes(status)) {
+                return res.status(404).json({ error: 'Player not found.' });
+            }
+        }
+        res.status(500).json({ error: 'An error occurred while fetching data.' });
     }
 });
 
@@ -1138,9 +1144,15 @@ app.get('/api/guild/:name', async (req, res) => {
         setCachedJson(cacheKey, responsePayload);
         res.json(responsePayload);
     } catch (error) {
-        console.error("Ошибка при получении гильдии:", error.message);
+        console.error("Guild fetch error:", error?.message, error?.response?.status);
         if (res.headersSent) return;
-        res.status(500).json({ error: 'Произошла ошибка при получении данных о гильдии.' });
+        if (error.response) {
+            const status = Number(error.response.status);
+            if ([400, 404].includes(status)) {
+                return res.status(404).json({ error: 'Guild not found' });
+            }
+        }
+        res.status(500).json({ error: 'An error occurred while fetching guild data.' });
     }
 });
 
