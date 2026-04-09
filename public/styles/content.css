@@ -681,7 +681,8 @@ a.contact-value:hover {
     width: 100%;
     margin-top: 10px;
     -webkit-overflow-scrolling: touch;
-
+    scrollbar-width: thin;
+    scrollbar-color: #c9d2df transparent;
 }
 
 .capture-the-wool-container .stats-table-wrapper {
@@ -694,9 +695,6 @@ a.contact-value:hover {
 
 .capture-the-wool-container .overall-stats-row {
     padding: 8px 12px;
-}
-    scrollbar-width: thin;
-    scrollbar-color: #c9d2df transparent;
 }
 
 .stats-table-wrapper::-webkit-scrollbar {

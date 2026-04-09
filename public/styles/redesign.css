@@ -1,16 +1,24 @@
+/* ==========================================================
+   redesign.css — design token overrides & layout refinements
+   Loads last in style.css, so it safely overrides theme.css /
+   search.css / content.css where needed.
+   ========================================================== */
+
+/* ── 1. DESIGN TOKENS (light theme) ───────────────────────── */
 :root {
-    --bg-color: #f6f8fc;
-    --card-bg: #ffffff;
-    --text-primary: #101828;
-    --text-secondary: #475467;
+    --bg-color: #e8edf6;
+    --card-bg: #f3f6fb;
+    --text-primary: #132238;
+    --text-secondary: #4f6079;
     --accent-red: #7c5cff;
-    --border-color: #d8deea;
-    --shadow: 0 12px 32px rgba(16, 24, 40, 0.08);
-    --surface-soft: #eef2ff;
-    --surface-strong: #e6ecff;
+    --border-color: #c9d3e3;
+    --shadow: 0 8px 20px rgba(16, 24, 40, 0.06);
+    --surface-soft: #e8eef9;
+    --surface-strong: #dde6f6;
     --accent-2: #22c1c3;
 }
 
+/* ── 2. DESIGN TOKENS (dark theme) ────────────────────────── */
 :root[data-theme="dark"] {
     --bg-color: #090e1a;
     --card-bg: #11172a;
@@ -18,17 +26,28 @@
     --text-secondary: #9aa7c4;
     --accent-red: #9e8bff;
     --border-color: #2a3550;
-    --shadow: 0 16px 36px rgba(2, 6, 23, 0.55);
+    --shadow: none;
     --surface-soft: #141d33;
     --surface-strong: #1a2744;
     --accent-2: #38d3d6;
 }
 
+/* ── 3. BACKGROUND GRADIENTS ──────────────────────────────── */
 body {
     background:
-        radial-gradient(circle at 8% -20%, rgba(124, 92, 255, 0.18), transparent 36%),
-        radial-gradient(circle at 90% 0%, rgba(34, 193, 195, 0.12), transparent 34%),
+        radial-gradient(circle at 8% -20%, rgba(124, 92, 255, 0.08), transparent 34%),
+        radial-gradient(circle at 92% 0%, rgba(34, 193, 195, 0.06), transparent 32%),
         var(--bg-color);
+}
+
+/* ── 4. HEADER / SUBNAV ───────────────────────────────────── */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    padding: 14px 16px 0;
+    background: transparent;
+    border: 0;
 }
 
 .site-header,
@@ -38,18 +57,81 @@ body {
     border-color: var(--border-color);
 }
 
-.brand-icon {
-    background: linear-gradient(135deg, var(--accent-red), var(--accent-2));
+:root[data-theme="dark"] .site-header,
+:root[data-theme="dark"] .subnav-wrap {
+    background: rgba(9, 14, 26, 0.86);
+}
+
+.site-header-inner {
+    max-width: 1260px;
+    height: auto;
+    margin: 0 auto;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--card-bg) 92%, transparent);
+}
+
+.subnav-wrap {
+    background: transparent;
+    border: 0;
+    padding: 12px 16px 8px;
+}
+
+.subnav-inner {
+    max-width: 1260px;
+    padding: 10px 16px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--card-bg) 90%, transparent);
+    justify-content: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* ── 5. BRAND ─────────────────────────────────────────────── */
+.brand { gap: 10px; }
+
+.brand-mark {
+    width: 34px;
+    height: 34px;
     border-radius: 11px;
-    box-shadow: 0 8px 20px rgba(124, 92, 255, 0.28);
+    background: linear-gradient(145deg, var(--accent-red), var(--accent-2));
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.brand-mark-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #fff;
+}
+
+.brand-mark-stem {
+    width: 14px;
+    height: 3px;
+    border-radius: 999px;
+    background: #fff;
 }
 
 .brand-name {
+    font-size: 24px;
     letter-spacing: 0.5px;
 }
 
 .brand-link:hover .brand-name {
     border-bottom-color: var(--accent-red);
+}
+
+/* ── 6. NAVIGATION LINKS ──────────────────────────────────── */
+.site-nav {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
 }
 
 .nav-link,
@@ -85,7 +167,6 @@ body {
     border-color: color-mix(in srgb, var(--accent-red) 38%, transparent);
     color: var(--text-primary);
     background: var(--card-bg);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-red) 12%, transparent);
 }
 
 .subnav-link-active,
@@ -93,14 +174,106 @@ body {
     color: #fff;
     background: linear-gradient(135deg, var(--accent-red), color-mix(in srgb, var(--accent-red) 80%, #ffffff));
     border-color: transparent;
-    box-shadow: 0 8px 18px color-mix(in srgb, var(--accent-red) 30%, transparent);
 }
 
+:root[data-theme="dark"] .nav-link,
+:root[data-theme="dark"] .theme-toggle,
+:root[data-theme="dark"] .subnav-link {
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .nav-link:hover,
+:root[data-theme="dark"] .subnav-link:hover,
+:root[data-theme="dark"] .theme-toggle:hover {
+    background: var(--surface-soft);
+}
+
+:root[data-theme="dark"] .nav-link-active,
+:root[data-theme="dark"] .nav-link-active:hover {
+    color: #bba8ff;
+    background: rgba(124, 92, 255, 0.16);
+    border-color: rgba(124, 92, 255, 0.34);
+}
+
+:root[data-theme="dark"] .subnav-link-active,
+:root[data-theme="dark"] .subnav-link-active:hover {
+    color: #bba8ff;
+    background: rgba(124, 92, 255, 0.16);
+    border-color: rgba(124, 92, 255, 0.34);
+}
+
+/* ── 7. SEARCH PAGE ───────────────────────────────────────── */
 .search-container,
 .results-wrapper {
     background: transparent;
 }
 
+.search-container {
+    align-items: center;
+    padding: 26px 20px 28px;
+}
+
+.search-box-card {
+    width: min(860px, 94vw);
+    min-height: 320px;
+    padding: 40px 38px 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+}
+
+.search-box-card h1 {
+    font-size: 34px;
+    letter-spacing: -0.02em;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 700px;
+}
+
+.search-box-card p {
+    margin: 0 auto;
+    max-width: 700px;
+    color: var(--text-secondary);
+}
+
+.search-icon {
+    font-size: 52px;
+    background: linear-gradient(135deg, var(--accent-red), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.input-group {
+    max-width: 700px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+}
+
+#comparatorPage .comparator-inputs {
+    max-width: 700px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 768px) {
+    .search-box-card {
+        min-height: auto;
+        padding: 24px 16px 20px;
+    }
+}
+
+/* ── 8. CARDS ─────────────────────────────────────────────── */
 .search-box-card,
 .card,
 .games-card,
@@ -112,48 +285,34 @@ body {
 .contact-row,
 .contact-list {
     border-color: var(--border-color);
-    box-shadow: var(--shadow);
-}
-
-.search-box-card,
-.card,
-.games-card,
-.comparator-mode-card,
-.comparator-player-card,
-.changelog-entry,
-.faq-item,
-.policy-section,
-.contact-row {
     background: color-mix(in srgb, var(--card-bg) 95%, #ffffff 5%);
 }
 
-.search-box-card {
+.card,
+.games-card {
     border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 56px 56px 34px;
+    border-radius: 18px;
+    padding: 28px;
 }
 
-.search-icon {
-    font-size: 52px;
-    background: linear-gradient(135deg, var(--accent-red), var(--accent-2));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+:root[data-theme="dark"] .game-panel,
+:root[data-theme="dark"] .search-box-card,
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .games-card,
+:root[data-theme="dark"] .comparator-mode-card,
+:root[data-theme="dark"] .comparator-player-card,
+:root[data-theme="dark"] .changelog-entry,
+:root[data-theme="dark"] .faq-item,
+:root[data-theme="dark"] .policy-section,
+:root[data-theme="dark"] .contact-row {
+    background: color-mix(in srgb, var(--card-bg) 88%, #0a1222);
 }
 
-.search-box-card h1 {
-    font-size: 34px;
-    letter-spacing: -0.02em;
-}
-
-.search-box-card p {
-    color: var(--text-secondary);
-}
-
+/* ── 9. INPUTS & BUTTONS ──────────────────────────────────── */
 input {
     border-radius: 12px;
     border: 1px solid var(--border-color);
-    background: color-mix(in srgb, var(--card-bg) 85%, var(--surface-soft));
+    background: #eef2f8;
     color: var(--text-primary);
 }
 
@@ -165,7 +324,6 @@ input:focus {
 button {
     border-radius: 12px;
     background: linear-gradient(135deg, var(--accent-red), color-mix(in srgb, var(--accent-red) 80%, #ffffff));
-    box-shadow: 0 10px 20px color-mix(in srgb, var(--accent-red) 25%, transparent);
 }
 
 button:hover {
@@ -173,12 +331,61 @@ button:hover {
     filter: brightness(1.03);
 }
 
-.card,
-.games-card {
-    border: 1px solid var(--border-color);
-    border-radius: 18px;
+:root[data-theme="dark"] button {
+    background: linear-gradient(135deg, #5e45d6, #4633b7);
+    color: #ffffff;
 }
 
+:root[data-theme="dark"] button:hover {
+    background: linear-gradient(135deg, #6a52e0, #4f3cc4);
+}
+
+:root[data-theme="dark"] input {
+    background: #0f172a;
+    color: var(--text-primary);
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] input::placeholder {
+    color: #7f8ea3;
+}
+
+/* ── 10. RECENT SEARCH CHIP REMOVE BUTTON ─────────────────── */
+/* Needs explicit reset because global `button` styles apply  */
+.recent-search-chip-remove {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #6b7280;
+    padding: 0;
+    width: 18px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    box-shadow: none;
+    transform: none;
+    filter: none;
+}
+
+.recent-search-chip-remove:hover {
+    background: transparent;
+    color: var(--accent-red);
+    transform: none;
+    filter: none;
+}
+
+:root[data-theme="dark"] .recent-search-chip-remove {
+    background: transparent;
+    box-shadow: none;
+    color: #94a3b8;
+}
+
+:root[data-theme="dark"] .recent-search-chip-remove:hover {
+    background: transparent;
+    color: #cbd5e1;
+    filter: none;
+}
+
+/* ── 11. STATS LIST ───────────────────────────────────────── */
 .stats-list p {
     border-bottom: 1px dashed color-mix(in srgb, var(--border-color) 80%, transparent);
     padding-bottom: 9px;
@@ -189,10 +396,28 @@ button:hover {
     padding-bottom: 0;
 }
 
+:root[data-theme="dark"] .stats-list p strong,
+:root[data-theme="dark"] .search-box-card p,
+:root[data-theme="dark"] .faq-item p,
+:root[data-theme="dark"] .policy-section p,
+:root[data-theme="dark"] .contact-label {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .stats-list p span:not(.status-online):not(.status-offline):not(.guild-name),
+:root[data-theme="dark"] h1,
+:root[data-theme="dark"] h2,
+:root[data-theme="dark"] h3,
+:root[data-theme="dark"] .comparator-mode-title,
+:root[data-theme="dark"] .guild-member-name,
+:root[data-theme="dark"] .guild-member-username {
+    color: var(--text-primary);
+}
+
+/* ── 12. GAME ACCORDION ───────────────────────────────────── */
 .game-item {
     border-radius: 12px;
     border: 1px solid var(--border-color);
-    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.05);
 }
 
 .game-header {
@@ -217,6 +442,17 @@ button:hover {
     background: color-mix(in srgb, var(--card-bg) 86%, var(--surface-soft));
 }
 
+:root[data-theme="dark"] .game-header {
+    background: color-mix(in srgb, var(--surface-soft) 90%, #0a1324);
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .game-header:hover {
+    background: color-mix(in srgb, var(--surface-soft) 72%, #0a1324);
+    color: #bba8ff;
+}
+
+/* ── 13. STATS TABLES ─────────────────────────────────────── */
 .overall-stats-row {
     border-bottom-color: color-mix(in srgb, var(--border-color) 90%, transparent);
     font-size: 14px;
@@ -226,9 +462,7 @@ button:hover {
     border-bottom-color: var(--border-color);
 }
 
-.section-title {
-    color: var(--text-primary);
-}
+.section-title { color: var(--text-primary); }
 
 .stats-table {
     font-size: 13px;
@@ -243,6 +477,10 @@ button:hover {
     background: color-mix(in srgb, var(--surface-soft) 75%, transparent);
 }
 
+.stats-table thead th {
+    background: #e9eff9;
+}
+
 .stats-table tbody tr:not(:last-child),
 .comparator-mode-table tbody tr:not(:last-child),
 .comparator-overall-table tbody tr:not(:last-child) {
@@ -255,6 +493,25 @@ button:hover {
     background: color-mix(in srgb, var(--surface-soft) 65%, transparent);
 }
 
+:root[data-theme="dark"] .stats-table thead th,
+:root[data-theme="dark"] .comparator-mode-table th,
+:root[data-theme="dark"] .comparator-overall-table th {
+    background: color-mix(in srgb, var(--surface-soft) 65%, #0a1324);
+}
+
+:root[data-theme="dark"] .stats-table th,
+:root[data-theme="dark"] .stats-table td,
+:root[data-theme="dark"] .comparator-mode-table th,
+:root[data-theme="dark"] .comparator-mode-table td,
+:root[data-theme="dark"] .overall-stats-row {
+    border-color: #243244;
+}
+
+:root[data-theme="dark"] .stats-table tbody tr:hover {
+    background-color: #152133;
+}
+
+/* ── 14. COMPARATOR ───────────────────────────────────────── */
 .comparator-mode-card,
 .comparator-player-card {
     border-radius: 14px;
@@ -267,14 +524,15 @@ button:hover {
 
 .cmp-better,
 .stats-list p span.cmp-better {
-    color: #18b87f !important;
+    color: #18b87f;
 }
 
 .cmp-worse,
 .stats-list p span.cmp-worse {
-    color: #ff5a7a !important;
+    color: #ff5a7a;
 }
 
+/* ── 15. BACK BUTTON ──────────────────────────────────────── */
 .back-button {
     width: 100%;
     display: inline-flex;
@@ -288,6 +546,8 @@ button:hover {
     border-radius: 14px;
     font-weight: 700;
     box-shadow: none;
+    transform: none;
+    filter: none;
 }
 
 .back-button:hover {
@@ -298,215 +558,37 @@ button:hover {
     filter: none;
 }
 
+:root[data-theme="dark"] .back-button {
+    background: #101a2d;
+    color: #dbe7ff;
+    border: 1px solid #2f3b54;
+}
+
+:root[data-theme="dark"] .back-button:hover {
+    background: #15233a;
+    color: #e9eeff;
+    border-color: #3a4a69;
+}
+
+/* ── 16. FOOTER ───────────────────────────────────────────── */
 .site-footer {
     background: linear-gradient(180deg, #1b2334 0%, #111827 58%, #0b1220 100%);
     border-top-color: rgba(255, 255, 255, 0.08);
 }
 
-.site-footer-bottom {
-    border-top-color: rgba(198, 210, 231, 0.18);
-}
+.site-footer-inner { max-width: 1260px; }
+
+.site-footer-bottom { border-top-color: rgba(198, 210, 231, 0.18); }
 
 .site-footer .footer-col a,
-.site-footer .footer-col p {
-    color: #b8c4da;
-}
+.site-footer .footer-col p { color: #b8c4da; }
 
-.site-footer .footer-col a:hover {
-    color: #e5ecff;
-}
+.site-footer .footer-col a:hover { color: #e5ecff; }
 
-.site-footer-bottom p {
-    color: #a5b4cf;
-}
+.site-footer-bottom p { color: #a5b4cf; }
 
-:root[data-theme="dark"] .site-header,
-:root[data-theme="dark"] .subnav-wrap {
-    background: rgba(9, 14, 26, 0.86);
-}
-
-:root[data-theme="dark"] .game-panel,
-:root[data-theme="dark"] .search-box-card,
-:root[data-theme="dark"] .card,
-:root[data-theme="dark"] .games-card,
-:root[data-theme="dark"] .comparator-mode-card,
-:root[data-theme="dark"] .comparator-player-card,
-:root[data-theme="dark"] .changelog-entry,
-:root[data-theme="dark"] .faq-item,
-:root[data-theme="dark"] .policy-section,
-:root[data-theme="dark"] .contact-row {
-    background: color-mix(in srgb, var(--card-bg) 88%, #0a1222);
-}
-
-:root[data-theme="dark"] .game-header {
-    background: color-mix(in srgb, var(--surface-soft) 90%, #0a1324);
-    color: var(--text-primary);
-}
-
-:root[data-theme="dark"] .game-header:hover {
-    background: color-mix(in srgb, var(--surface-soft) 72%, #0a1324);
-    color: #bba8ff;
-}
-
-:root[data-theme="dark"] .stats-table thead th,
-:root[data-theme="dark"] .comparator-mode-table th,
-:root[data-theme="dark"] .comparator-overall-table th {
-    background: color-mix(in srgb, var(--surface-soft) 65%, #0a1324);
-}
-
-:root[data-theme="dark"] .nav-link:hover,
-:root[data-theme="dark"] .subnav-link:hover,
-:root[data-theme="dark"] .theme-toggle:hover {
-    background: var(--surface-soft);
-}
-
-:root[data-theme="dark"] .theme-toggle,
-:root[data-theme="dark"] .subnav-link,
-:root[data-theme="dark"] .nav-link {
-    border-color: var(--border-color);
-    color: var(--text-secondary);
-}
-
-:root[data-theme="dark"] .nav-link-active,
-:root[data-theme="dark"] .nav-link-active:hover {
-    color: #bba8ff;
-    background: rgba(124, 92, 255, 0.16);
-    border-color: rgba(124, 92, 255, 0.34);
-    box-shadow: none;
-}
-
-:root[data-theme="dark"] .subnav-link-active,
-:root[data-theme="dark"] .subnav-link-active:hover {
-    color: #bba8ff;
-    background: rgba(124, 92, 255, 0.16);
-    border-color: rgba(124, 92, 255, 0.34);
-    box-shadow: none;
-}
-
-:root[data-theme="dark"] .stats-list p strong,
-:root[data-theme="dark"] .search-box-card p,
-:root[data-theme="dark"] .faq-item p,
-:root[data-theme="dark"] .policy-section p,
-:root[data-theme="dark"] .contact-label {
-    color: var(--text-secondary);
-}
-
-:root[data-theme="dark"] button {
-    background: linear-gradient(135deg, #5e45d6, #4633b7);
-    color: #ffffff;
-}
-
-:root[data-theme="dark"] button:hover {
-    background: linear-gradient(135deg, #6a52e0, #4f3cc4);
-}
-
-.site-header {
-    position: sticky;
-    top: 0;
-    z-index: 80;
-    padding: 14px 16px 0;
-    background: transparent;
-    border: 0;
-}
-
-.site-header-inner {
-    max-width: 1260px;
-    height: auto;
-    margin: 0 auto;
-    padding: 12px 16px;
-    border: 1px solid var(--border-color);
-    border-radius: 18px;
-    background: color-mix(in srgb, var(--card-bg) 92%, transparent);
-    box-shadow: var(--shadow);
-}
-
-.subnav-wrap {
-    background: transparent;
-    border: 0;
-    padding: 12px 16px 8px;
-}
-
-.subnav-inner {
-    max-width: 1260px;
-    padding: 10px 16px;
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    background: color-mix(in srgb, var(--card-bg) 90%, transparent);
-    box-shadow: var(--shadow);
-    justify-content: flex-start;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.brand {
-    gap: 10px;
-}
-
-.brand-mark {
-    width: 34px;
-    height: 34px;
-    border-radius: 11px;
-    background: linear-gradient(145deg, var(--accent-red), var(--accent-2));
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    box-shadow: 0 10px 24px color-mix(in srgb, var(--accent-red) 35%, transparent);
-}
-
-.brand-mark-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: #fff;
-}
-
-.brand-mark-stem {
-    width: 14px;
-    height: 3px;
-    border-radius: 999px;
-    background: #fff;
-}
-
-.brand-name {
-    font-size: 24px;
-}
-
-.site-nav {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px;
-}
-
-.search-container {
-    align-items: flex-start;
-    padding: 52px 20px 32px;
-}
-
-.search-box-card {
-    width: min(1020px, 96vw);
-    text-align: left;
-    padding: 46px 48px 34px;
-}
-
-.search-box-card h1 {
-    max-width: 680px;
-}
-
-.search-box-card p {
-    max-width: 680px;
-}
-
-.input-group {
-    max-width: 700px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.results-wrapper {
-    padding-top: 14px;
-}
+/* ── 17. LAYOUT ───────────────────────────────────────────── */
+.results-wrapper { padding-top: 14px; }
 
 .main-container {
     max-width: 1560px;
@@ -522,18 +604,7 @@ button:hover {
     align-self: start;
 }
 
-.card,
-.games-card {
-    padding: 28px;
-}
-
-.guild-page-container {
-    padding: 0 10px;
-}
-
-.site-footer-inner {
-    max-width: 1260px;
-}
+.guild-page-container { padding: 0 10px; }
 
 @media (max-width: 1120px) {
     .site-header,
@@ -542,10 +613,7 @@ button:hover {
         padding-right: 10px;
     }
 
-    .site-header-inner {
-        border-radius: 14px;
-        gap: 10px;
-    }
+    .site-header-inner { border-radius: 14px; gap: 10px; }
 
     .main-container {
         grid-template-columns: 1fr;
@@ -557,204 +625,4 @@ button:hover {
         order: initial;
         position: static;
     }
-}
-
-/* --- Light theme tone-down + search layout stabilization --- */
-:root {
-    --bg-color: #e8edf6;
-    --card-bg: #f3f6fb;
-    --text-primary: #132238;
-    --text-secondary: #4f6079;
-    --border-color: #c9d3e3;
-    --shadow: 0 8px 20px rgba(16, 24, 40, 0.06);
-    --surface-soft: #e8eef9;
-    --surface-strong: #dde6f6;
-}
-
-body {
-    background:
-        radial-gradient(circle at 8% -20%, rgba(124, 92, 255, 0.08), transparent 34%),
-        radial-gradient(circle at 92% 0%, rgba(34, 193, 195, 0.06), transparent 32%),
-        var(--bg-color);
-}
-
-.site-header-inner,
-.subnav-inner,
-.search-box-card,
-.card,
-.games-card,
-.comparator-mode-card,
-.comparator-player-card,
-.changelog-entry,
-.faq-item,
-.policy-section,
-.contact-row,
-.contact-list {
-    box-shadow: var(--shadow);
-}
-
-.search-container {
-    align-items: center;
-    padding: 26px 20px 28px;
-}
-
-.search-box-card {
-    width: min(980px, 94vw);
-    text-align: center;
-    padding: 42px 40px 28px;
-}
-
-.search-box-card h1 {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 740px;
-}
-
-.search-box-card p {
-    margin: 0 auto;
-    max-width: 740px;
-    color: var(--text-secondary);
-}
-
-.input-group {
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-    display: flex;
-    align-items: center;
-}
-
-input {
-    background: #eef2f8;
-}
-
-.stats-table thead th,
-.comparator-mode-table th,
-.comparator-overall-table th {
-    background: #e9eff9;
-}
-
-/* Unify top search cards size (Player / Comparator / Guild) */
-#searchPage .search-box-card,
-#guildSearchPage .search-box-card,
-#comparatorPage .search-box-card {
-    width: min(860px, 94vw);
-    min-height: 320px;
-    padding: 40px 38px 30px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-#searchPage .search-box-card h1,
-#guildSearchPage .search-box-card h1,
-#comparatorPage .search-box-card h1 {
-    max-width: 700px;
-}
-
-#searchPage .search-box-card p,
-#guildSearchPage .search-box-card p,
-#comparatorPage .search-box-card p {
-    max-width: 700px;
-}
-
-#searchPage .input-group,
-#guildSearchPage .input-group {
-    max-width: 700px;
-    width: 100%;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 14px;
-    align-items: center;
-}
-
-#comparatorPage .comparator-inputs {
-    max-width: 700px;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-@media (max-width: 768px) {
-    #searchPage .search-box-card,
-    #guildSearchPage .search-box-card,
-    #comparatorPage .search-box-card {
-        min-height: auto;
-        padding: 24px 16px 20px;
-    }
-}
-
-/* Remove outer glow/highlight effects across UI */
-.site-header-inner,
-.subnav-inner,
-.search-box-card,
-.card,
-.games-card,
-.comparator-mode-card,
-.comparator-player-card,
-.changelog-entry,
-.faq-item,
-.policy-section,
-.contact-row,
-.contact-list,
-.game-item,
-.brand-mark,
-button,
-.theme-toggle,
-.nav-link,
-.subnav-link,
-.contact-copy-btn,
-.recent-search-chip,
-.recent-search-chip-label,
-.recent-search-chip-remove,
-input,
-input:focus,
-.nav-link-active,
-.subnav-link-active,
-:root[data-theme="dark"] .nav-link-active,
-:root[data-theme="dark"] .subnav-link-active {
-    box-shadow: none !important;
-    text-shadow: none !important;
-    filter: none !important;
-}
-
-button:hover,
-.contact-copy-btn:hover,
-.recent-search-chip:hover,
-.subnav-link:hover,
-.nav-link:hover {
-    box-shadow: none !important;
-    filter: none !important;
-}
-
-.recent-search-chip-remove,
-.recent-search-chip-remove:hover,
-.recent-search-chip-remove:focus,
-.recent-search-chip-remove:active {
-    background: transparent !important;
-    border: 1px solid transparent !important;
-    box-shadow: none !important;
-    filter: none !important;
-    text-shadow: none !important;
-}
-
-.recent-search-chip-remove {
-    color: #6b7280 !important;
-    padding: 0 !important;
-    width: 18px !important;
-    min-width: 18px !important;
-    height: 18px !important;
-    border-radius: 999px !important;
-}
-
-.recent-search-chip-remove:hover {
-    color: var(--accent-red) !important;
-}
-
-:root[data-theme="dark"] .recent-search-chip-remove {
-    color: #94a3b8 !important;
-}
-
-:root[data-theme="dark"] .recent-search-chip-remove:hover {
-    color: #cbd5e1 !important;
 }
