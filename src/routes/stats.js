@@ -282,6 +282,33 @@ router.get('/:username', async (req, res) => {
             toNumber(achievements.total_achievement_points)
         );
 
+        const normalizeServerType = (rawType) => {
+            if (!rawType) return null;
+            const normalizedKey = String(rawType).trim().replace(/[^a-z0-9]/gi, '').toLowerCase();
+            const mapping = {
+                skywars: 'SkyWars',
+                bedwars: 'Bedwars',
+                skyclash: 'SkyClash',
+                murdermystery: 'Murder Mystery',
+                vampirez: 'VampireZ',
+                tntgames: 'TNT Games',
+                arcade: 'Arcade',
+                buildbattle: 'Build Battle',
+                uhc: 'UHC',
+                speeduhc: 'Speed UHC',
+                quake: 'Quakecraft',
+                walls: 'Walls',
+                walls3: 'Mega Walls',
+                super_smash: 'Smash Heroes',
+                pit: 'The Pit',
+                skyblock: 'SkyBlock'
+            };
+            return mapping[normalizedKey] || titleCaseWords(String(rawType).toLowerCase().replace(/[_-]+/g, ' ').trim());
+        };
+
+        const rawServerType = player.gameType || player.currentGameType || player.currentGame || player.mostRecentGameType || null;
+        const serverType = isOnline ? normalizeServerType(rawServerType) : null;
+
         const responsePayload = {
             uuid: uuid,
             name: player.displayname,
@@ -291,6 +318,7 @@ router.get('/:username', async (req, res) => {
             rankColor: rankInfo.color,
             achievements,
             online: isOnline,
+            serverType,
             networkLevel: (Math.sqrt((2 * (player.networkExp || 0)) + 30625) / 50) - 2.5,
             karma: player.karma || 0,
             achievementPoints,
@@ -328,7 +356,8 @@ router.get('/:username', async (req, res) => {
             } : null
         };
 
-        setCachedJson(cacheKey, responsePayload);
+        const cacheTtlMs = isOnline ? 10 * 1000 : undefined;
+        setCachedJson(cacheKey, responsePayload, cacheTtlMs);
         res.json(responsePayload);
 
     } catch (error) {

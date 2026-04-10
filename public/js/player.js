@@ -152,6 +152,16 @@ async function getStats() {
         playerStatus.classList.toggle('status-online', isOnline);
         playerStatus.classList.toggle('status-offline', !isOnline);
 
+        const playerServerTypeRow = document.getElementById('playerServerTypeRow');
+        const playerServerType = String(data.serverType || '').trim();
+
+        if (isOnline && playerServerType) {
+            document.getElementById('playerServerType').innerText = playerServerType;
+            playerServerTypeRow.classList.remove('hidden');
+        } else {
+            playerServerTypeRow.classList.add('hidden');
+        }
+
         const guildNameEl = document.getElementById('guildName');
         if (data.guild) {
             guildNameEl.innerText = data.guild.name;
